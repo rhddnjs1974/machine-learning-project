@@ -15,8 +15,8 @@ import numpy as np
 import pandas as pd
 
 # ---- Fill in your information (used in results.json) ----
-STUDENT_ID = "00000000"   # TODO: your student id, e.g. "20261234"
-STUDENT_NAME = "None"     # TODO: your name in Korean or roman letters — "홍길동" / "HongGildong"
+STUDENT_ID = "20212788"   # TODO: your student id, e.g. "20261234"
+STUDENT_NAME = "최재원"     # TODO: your name in Korean or roman letters — "홍길동" / "HongGildong"
 
 SEED = 42  # fixed for the whole course — DO NOT CHANGE
 DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "cafe_sales.csv"
@@ -41,7 +41,12 @@ def summarize_missing(df: pd.DataFrame) -> pd.Series:
         DESCENDING order of count (ties: keep pandas' stable order).
         Include only columns that have at least one missing value.
     """
-    raise NotImplementedError
+    s = df.isna()
+    s = s.sum()
+    s = s[s > 0]
+    s = s.sort_values(ascending=False, kind="stable")
+    
+    return s
 # ============================ END TODO (Task 1) ==============================
 
 
@@ -62,7 +67,25 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
     The returned frame must contain no missing values.
     """
-    raise NotImplementedError
+    ans = df.copy()
+    ans = ans.drop_duplicates()
+    ans = ans.reset_index(drop=True)
+    
+    ans["unit_price"] = ans["unit_price"].astype(str).str.replace(',','')
+    ans["unit_price"] = ans["unit_price"].astype(float)
+    
+    m = ans["quantity"].median()
+    ans["quantity"] = ans["quantity"].fillna(m)
+    ans["quantity"] = ans["quantity"].astype(int)
+    
+    mask = ans["total_price"].isna()
+    ans.loc[mask,"total_price"] = ans.loc[mask,"unit_price"] * ans.loc[mask,"quantity"]
+    
+    m2 = ans["customer_rating"].mean()
+    m2 = round(m2,2)
+    ans["customer_rating"] = ans["customer_rating"].fillna(m2)
+    
+    return ans
 # ============================ END TODO (Task 2) ==============================
 
 
@@ -76,7 +99,19 @@ def detect_outliers_iqr(df: pd.DataFrame, column: str, k: float = 1.5) -> list:
 
     NaN values are never outliers. Return a plain Python list of ints.
     """
-    raise NotImplementedError
+    
+    ans = df[column]
+    q1 = ans.quantile(0.25)
+    q3 = ans.quantile(0.75)
+    iqr = q3-q1
+    mi = q1 - k * iqr
+    ma = q3 + k * iqr
+    
+    ans = ans[(ans<mi) | (ans>ma)].index
+    ans = ans.tolist()
+    ans = sorted(ans)
+    
+    return ans
 # ============================ END TODO (Task 3) ==============================
 
 
@@ -89,7 +124,12 @@ def compute_group_stats(df: pd.DataFrame, group_col: str, value_col: str) -> pd.
         ["count", "mean", "sum"] (count of non-missing values, mean rounded
         to 2 decimals, sum), sorted by "sum" in DESCENDING order.
     """
-    raise NotImplementedError
+    
+    ans = df.groupby(group_col)[value_col].agg(["count", "mean", "sum"])
+    ans["mean"] = ans["mean"].round(2)
+    ans = ans.sort_values("sum",ascending=False)
+    
+    return ans
 # ============================ END TODO (Task 4) ==============================
 
 
