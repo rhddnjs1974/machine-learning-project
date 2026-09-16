@@ -9,6 +9,7 @@ Lab work for the course, one folder per lab.
 | Lab | Topic | Folder |
 | --- | ----- | ------ |
 | 00 | Warm-up: version control and six ML equations | [`lab00/`](lab00/) |
+| 01 | EDA: environment setup and pandas data handling | [`lab01/`](lab01/) |
 
 ## Running a lab
 
