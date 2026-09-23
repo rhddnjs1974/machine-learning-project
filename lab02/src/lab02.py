@@ -21,8 +21,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 # ---- Fill in your information (used in results.json) ----
-STUDENT_ID = "00000000"   # TODO: your student id
-STUDENT_NAME = "None"     # TODO: your name in roman letters
+STUDENT_ID = "20212788"   # TODO: your student id
+STUDENT_NAME = "최재원"     # TODO: your name in roman letters
 
 SEED = 42  # fixed for the whole course — DO NOT CHANGE
 DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "clinic_noshow.csv"
@@ -62,7 +62,7 @@ def split_data(X: pd.DataFrame, y: pd.Series, test_size: float = 0.2,
     Never fit anything (scaler, model, imputer) before this split — that is
     data leakage, and the hidden tests are built to catch it.
     """
-    raise NotImplementedError
+    return train_test_split(X, y, test_size=test_size, random_state=seed, shuffle=True, stratify=y)
 # ============================ END TODO (Task 1) ==============================
 
 
@@ -87,7 +87,36 @@ def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict:
         {"accuracy": float, "precision": float, "recall": float, "f1": float}
         — plain Python floats rounded to 4 decimals.
     """
-    raise NotImplementedError
+    
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+    
+    tp = ((y_true == 1) & (y_pred == 1)).sum()
+    fp = ((y_true == 0) & (y_pred == 1)).sum()
+    
+    tn = ((y_true == 0) & (y_pred == 0)).sum()
+    fn = ((y_true == 1) & (y_pred == 0)).sum()
+    
+    accuracy = (tp+tn) / (tp+fp+tn+fn)
+    
+    if tp+fp==0:
+        precision = 0
+    else:
+        precision = tp / (tp+fp)
+        
+    if tp+fn==0:
+        recall = 0
+    else:
+        recall = tp / (tp+fn)
+
+    if precision+recall==0:
+        f1 = 0
+    else:
+        f1 = 2*precision*recall / (precision+recall)
+    
+    return {"accuracy":float(round(accuracy, 4)), "precision":float(round(precision, 4)), "recall":float(round(recall, 4)), "f1":float(round(f1, 4))}
+    
+
 # ============================ END TODO (Task 2) ==============================
 
 
@@ -97,7 +126,7 @@ def build_baseline() -> DummyClassifier:
 
     This is the sanity baseline every later model must beat.
     """
-    raise NotImplementedError
+    return DummyClassifier(strategy="most_frequent")
 
 
 def build_model(model_name: str = "logreg") -> Pipeline:
@@ -111,7 +140,15 @@ def build_model(model_name: str = "logreg") -> Pipeline:
     Scaling inside the Pipeline (fit on train only) is what keeps the
     validation data untouched during preprocessing.
     """
-    raise NotImplementedError
+    if model_name == "logreg":
+        clf = LogisticRegression(random_state=SEED, max_iter=1000)
+    elif model_name == "knn":
+        clf = KNeighborsClassifier(n_neighbors=15)
+    else:
+        raise ValueError(f"unknown model: {model_name}")
+
+    return Pipeline([("scaler", StandardScaler()), ("clf", clf)])
+
 # ============================ END TODO (Task 3) ==============================
 
 
@@ -135,7 +172,18 @@ def run_experiment(X: pd.DataFrame, y: pd.Series) -> dict:
         {"baseline": {...}, "logreg": {...}, "knn": {...}}
         (each value is a compute_metrics dict).
     """
-    raise NotImplementedError
+    X_train, X_val, y_train, y_val = split_data(X, y)
+
+    models = {"baseline":build_baseline(), "logreg":build_model("logreg"), "knn":build_model("knn")}
+
+    results = {}
+    
+    for name, model in models.items():
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_val)
+        results[name] = compute_metrics(y_val, y_pred)
+
+    return results
 # ============================ END TODO (Task 4) ==============================
 
 
@@ -158,7 +206,19 @@ def compute_regression_metrics(y_true, y_pred) -> dict:
         {"mae": float, "rmse": float, "r2": float}
         — plain Python floats rounded to 4 decimals.
     """
-    raise NotImplementedError
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+    e = y_true - y_pred
+    
+    mae = np.abs(e).mean()
+    rmse = np.sqrt((e**2).mean())
+    if ((y_true - y_true.mean())**2).sum()==0:
+        r2 = 0
+    else:
+        r2 = 1 - (e**2).sum() / ((y_true - y_true.mean())**2).sum()
+        
+    return {"mae": float(round(mae, 4)), "rmse": float(round(rmse, 4)), "r2": float(round(r2, 4))}
+    
 # ============================ END TODO (Task 5) ==============================
 
 
@@ -177,7 +237,16 @@ def build_regression_model(model_name: str = "baseline"):
     Pipeline steps MUST be named exactly "scaler" and "reg". (The baseline is
     a bare DummyRegressor, not a Pipeline — it has nothing to scale.)
     """
-    raise NotImplementedError
+    if model_name == "baseline":
+        return DummyRegressor(strategy="mean")
+    elif model_name == "linreg":
+        reg = LinearRegression()
+    elif model_name == "knn":
+        reg = KNeighborsRegressor(n_neighbors=15)
+    else:
+        raise ValueError(f"unknown model: {model_name}")
+
+    return Pipeline([("scaler", StandardScaler()), ("reg", reg)])
 
 
 def run_regression_experiment(X: pd.DataFrame, y: pd.Series,
@@ -198,7 +267,18 @@ def run_regression_experiment(X: pd.DataFrame, y: pd.Series,
         {"baseline": {...}, "linreg": {...}, "knn": {...}}
         (each value is a compute_regression_metrics dict).
     """
-    raise NotImplementedError
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=test_size, random_state=seed, shuffle=True)
+    
+    models = {"baseline": build_regression_model("baseline"),"linreg":build_regression_model("linreg"),"knn":build_regression_model("knn")}
+    
+    results = {}
+    for name, model in models.items():
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_val)
+        results[name] = compute_regression_metrics(y_val, y_pred)
+
+    return results
+
 # ============================ END TODO (Task 6) ==============================
 
 
