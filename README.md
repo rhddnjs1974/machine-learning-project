@@ -12,6 +12,7 @@ Lab work for the course, one folder per lab.
 | 01 | EDA: environment setup and pandas data handling | [`lab01/`](lab01/) |
 | 02 | Classification & regression with scikit-learn | [`lab02/`](lab02/) |
 | 03 | K-means, GMM and EM | [`lab03/`](lab03/) |
+| 04-1 | Gradient descent and a NumPy MLP | [`lab04_1/`](lab04_1/) |
 
 ## Running a lab
 
