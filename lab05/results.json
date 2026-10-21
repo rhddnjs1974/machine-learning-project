@@ -1,0 +1,19 @@
+{
+  "lab": "lab05",
+  "student_id": "20212788",
+  "name": "\ucd5c\uc7ac\uc6d0",
+  "seed": 42,
+  "metrics": {
+    "n_samples": 1200,
+    "n_classes": 4,
+    "n_labelled_train": 240,
+    "epochs": 8,
+    "baseline_accuracy": 0.2573,
+    "baseline_trainable_params": 0,
+    "scratch_accuracy": 0.8229,
+    "scratch_trainable_params": 7940,
+    "transfer_accuracy": 0.9469,
+    "transfer_trainable_params": 2052
+  },
+  "runtime_seconds": 6.17
+}
