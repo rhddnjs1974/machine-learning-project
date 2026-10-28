@@ -15,6 +15,7 @@ Lab work for the course, one folder per lab.
 | 04-1 | Gradient descent and a NumPy MLP | [`lab04_1/`](lab04_1/) |
 | 04-2 | PyTorch training and hyperparameter tuning | [`lab04_2/`](lab04_2/) |
 | 05 | CNNs and transfer learning | [`lab05/`](lab05/) |
+| 06 | RNNs and time-series forecasting | [`lab06/`](lab06/) |
 
 ## Running a lab
 
