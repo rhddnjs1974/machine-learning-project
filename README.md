@@ -17,6 +17,7 @@ Lab work for the course, one folder per lab.
 | 05 | CNNs and transfer learning | [`lab05/`](lab05/) |
 | 06 | RNNs and time-series forecasting | [`lab06/`](lab06/) |
 | 08 | Experiment management and error analysis | [`lab08/`](lab08/) |
+| 09 | GANs and diffusion models | [`lab09/`](lab09/) |
 
 ## Running a lab
 
